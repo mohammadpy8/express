@@ -2,6 +2,20 @@ const express = require("express");
 const morgan = require("morgan");
 const { default: camelcase } = require("camelcase-keys");
 const camelCase = (...args) => import("camelcase-keys").then(({ default: camelCaseKeys }) => camelCaseKeys(args));
+const omitEmpty = require("omit-empty");
+
+console.log(
+  omitEmpty(
+    {
+      a: "",
+      b: [],
+      name: "mohammad",
+    },
+    {
+      omitZero: true,
+    }
+  )
+);
 
 const app = express();
 
@@ -26,6 +40,17 @@ const checkCamelCaseMiddelware = async (req, res, next) => {
   req.params = await camelCase(req.params);
   next();
 };
+
+const removeEmptyOmit = (option = {}) => {
+  return function (req, res, next) {
+    req.body = omitEmpty(req.body, option);
+    next();
+  };
+};
+
+app.post("/creat", removeEmptyOmit({ omitZero: true }), (req, res, next) => {
+  res.send(req.body);
+});
 
 app.use(checkCamelCaseMiddelware);
 
